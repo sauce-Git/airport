@@ -15,7 +15,6 @@ spring:
       - optional:file:.env[.properties]
 
   cloud:
-    # Gateway
     gateway:
       routes:
         - id: auth
