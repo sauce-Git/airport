@@ -1,11 +1,3 @@
-server:
-  ssl:
-    enabled: ${SSL_ENABLED}
-    key-alias: ${SSL_KEY_ALIAS}
-    key-store-password: ${SSL_KEY_STORE_PASSWORD}
-    key-store: keystore.p12
-    key-store-type: PKCS12
-
 spring:
   application:
     name: airport
@@ -18,26 +10,13 @@ spring:
     gateway:
       routes:
         # Change below to your services
-        - id: member_auth
-          uri: ${AUTH_URI}
+        - id: your_service
+          uri: ${YOUR_SERVICE_URI}
           predicates:
-            - Path=/auth/signin/{segment}, /auth/enroll/{segment}
+            - Path=/your_service/**
           filters:
             - StripPrefix=1
             - SessionIssueFilter
-        - id: member_manage
-          uri: ${AUTH_URI}
-          predicates:
-            - Path=/auth/delete/{segment}, /auth/modify/{segment}
-          filters:
-            - StripPrefix=1
-            - SessionValidateFilter
-        - id: tarot
-          uri: ${TAROT_URI}
-          predicates:
-            - Path=/tarot/**
-          filters:
-            - StripPrefix=1
             - SessionValidateFilter
 
   session:
@@ -48,3 +27,11 @@ spring:
     redis:
       host: ${SESSION_HOST}
       port: ${SESSION_PORT}
+
+server:
+  ssl:
+    enabled: ${SSL_ENABLED}
+    key-alias: ${SSL_KEY_ALIAS}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-store: keystore.p12
+    key-store-type: PKCS12
