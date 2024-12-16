@@ -27,7 +27,6 @@ public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionV
     return (exchange, chain) -> {
       return exchange.getSession().flatMap(session -> {
         Object uuid = session.getAttributes().get("uuid");
-        System.out.println("uuid obj: " + uuid);
         if (uuid != null) {
           return chain.filter(exchange.mutate().request(builder -> builder.header("uuid", uuid.toString())).build());
         } else {

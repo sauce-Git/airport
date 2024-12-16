@@ -1,0 +1,42 @@
+server:
+  ssl:
+    enabled: ${SSL_ENABLED}
+    key-alias: ${SSL_KEY_ALIAS}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-store: keystore.p12
+    key-store-type: PKCS12
+
+spring:
+  application:
+    name: airport
+
+  config:
+    import:
+      - optional:file:.env[.properties]
+
+  cloud:
+    gateway:
+      routes:
+        - id: auth
+          uri: ${AUTH_URI}
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?<segment>.*), /$\{segment}
+            - SessionIssueFilte
+        - id: tarot
+          uri: ${TAROT_URI}
+          predicates:
+            - Path=/tarot/**
+          filters:
+            - StripPrefix=1
+            - SessionValidateFilter
+
+  session:
+    redis:
+      namespace: session
+
+  data:
+    redis:
+      host: ${SESSION_HOST}
+      port: ${SESSION_PORT}
