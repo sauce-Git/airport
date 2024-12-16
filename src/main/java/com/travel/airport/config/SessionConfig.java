@@ -1,5 +1,6 @@
 package com.travel.airport.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -16,9 +17,15 @@ import org.springframework.web.server.session.WebSessionIdResolver;
 @EnableRedisIndexedWebSession
 public class SessionConfig {
 
+  @Value("${spring.data.redis.host}")
+  private String redisHost;
+
+  @Value("${spring.data.redis.port}")
+  private int redisPort;
+
   @Bean
   LettuceConnectionFactory connectionFactory() {
-    return new LettuceConnectionFactory();
+    return new LettuceConnectionFactory(redisHost, redisPort);
   }
 
   @Bean
