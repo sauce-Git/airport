@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.server.EnableRedisIndexedWebSession;
 import org.springframework.web.server.session.CookieWebSessionIdResolver;
 import org.springframework.web.server.session.WebSessionIdResolver;
@@ -26,6 +27,11 @@ public class SessionConfig {
   @Bean
   LettuceConnectionFactory connectionFactory() {
     return new LettuceConnectionFactory(redisHost, redisPort);
+  }
+
+  @Bean
+  ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
   }
 
   @Bean
