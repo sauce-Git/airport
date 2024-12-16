@@ -39,6 +39,13 @@ public class ErrorHandler {
     return error(exchange, HttpStatus.UNAUTHORIZED, "Unauthorized");
   }
 
+  /**
+   * Unauthorized response. Return 401 Unauthorized with a message.
+   * 
+   * @param exchange
+   * @param message
+   * @return Mono<Void>
+   */
   public static Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
     return error(exchange, HttpStatus.UNAUTHORIZED, message);
   }
@@ -53,6 +60,13 @@ public class ErrorHandler {
     return error(exchange, HttpStatus.FORBIDDEN, "Forbidden");
   }
 
+  /**
+   * Forbidden response. Return 403 Forbidden with a message.
+   * 
+   * @param exchange
+   * @param message
+   * @return Mono<Void>
+   */
   public static Mono<Void> forbidden(ServerWebExchange exchange, String message) {
     return error(exchange, HttpStatus.FORBIDDEN, message);
   }
