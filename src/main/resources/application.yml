@@ -17,13 +17,21 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: auth
+        # Change below to your services
+        - id: member_auth
           uri: ${AUTH_URI}
           predicates:
-            - Path=/auth/**
+            - Path=/auth/signin/{segment}, /auth/enroll/{segment}
           filters:
             - StripPrefix=1
             - SessionIssueFilter
+        - id: member_manage
+          uri: ${AUTH_URI}
+          predicates:
+            - Path=/auth/delete/{segment}, /auth/modify/{segment}
+          filters:
+            - StripPrefix=1
+            - SessionValidateFilter
         - id: tarot
           uri: ${TAROT_URI}
           predicates:
