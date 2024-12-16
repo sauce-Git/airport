@@ -15,6 +15,7 @@ spring:
       - optional:file:.env[.properties]
 
   cloud:
+    # Gateway
     gateway:
       routes:
         - id: auth
@@ -22,8 +23,8 @@ spring:
           predicates:
             - Path=/auth/**
           filters:
-            - RewritePath=/auth/(?<segment>.*), /$\{segment}
-            - SessionIssueFilte
+            - StripPrefix=1
+            - SessionIssueFilter
         - id: tarot
           uri: ${TAROT_URI}
           predicates:
