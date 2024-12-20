@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: airport
+
+  config:
+    import:
+      - optional:file:.env[.properties]
+
+  cloud:
+    gateway:
+      # below is the example of the session filter configuration
+      routes:
+        - id: your-service
+          uri: ${YOUR_SERVICE_URI}
+          predicates:
+            - Path=/your-service/**
+          filters:
+            - StripPrefix=1
+            - name: SessionIssueFilter
+              args:
+                sessionAttributes:
+                  - uuid
+                isRequired: true
+            - name: SessionValidateFilter
+              args:
+                sessionAttributes:
+                  - uuid
+                isRequired: true
+
+  # session configuration
+  session:
+    redis:
+      namespace: session
+
+  # data source configuration required for the session
+  data:
+    redis:
+      host: ${SESSION_HOST}
+      port: ${SESSION_PORT}
