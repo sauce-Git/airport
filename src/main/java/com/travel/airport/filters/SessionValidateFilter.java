@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 import com.travel.airport.error.ErrorHandler;
 
 @Component
-public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionValidateFilter.Config> {
+public class SessionValidateFilter extends
+    AbstractGatewayFilterFactory<SessionValidateFilter.Config> {
 
   public SessionValidateFilter() {
     super(Config.class);
@@ -22,30 +23,33 @@ public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionV
   }
 
   /**
-   * GatewayFilter
-   * Validate the session.
-   * If the session is valid, add the uuid to the request header.
-   * If the session is invalid, return 401 Unauthorized.
+   * GatewayFilter Validate the session. If the session is valid, add the uuid to the request
+   * header. If the session is invalid, return 401 Unauthorized.
    */
   @Override
   public GatewayFilter apply(Config config) {
-    return (exchange, chain) -> {
-      return exchange.getSession().flatMap(session -> {
-        System.out.println("config.getSessionAttributes() = " + config.getSessionAttributes());
-        Object uuid = session.getAttributes().get("uuid");
-        if (uuid != null) {
-          return chain.filter(exchange.mutate().request(builder -> builder.header("uuid", uuid.toString())).build());
-        } else {
-          return ErrorHandler.unauthorized(exchange);
+    return (exchange, chain) -> exchange.getSession().flatMap(session -> {
+      config.getSessionAttributes().forEach(attribute -> {
+        Object value = session.getAttributes().get(attribute);
+        if (value != null) {
+          exchange.getRequest().mutate().header(attribute, value.toString());
         }
       });
-    };
+
+      if (config.getIsRequired() && config.getSessionAttributes().stream()
+          .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
+        return ErrorHandler.unauthorized(exchange);
+      }
+
+      return chain.filter(exchange);
+    });
   }
 
   @Setter
   @Getter
   public static class Config {
-    private List<String> sessionAttributes;
-  }
 
+    private List<String> sessionAttributes = List.of("uuid");
+    private Boolean isRequired = true;
+  }
 }
