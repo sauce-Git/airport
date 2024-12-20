@@ -1,5 +1,9 @@
 package com.travel.airport.filters;
 
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.stereotype.Component;
@@ -9,10 +13,12 @@ import com.travel.airport.error.ErrorHandler;
 public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionValidateFilter.Config> {
 
   public SessionValidateFilter() {
-    super(SessionValidateFilter.Config.class);
+    super(Config.class);
   }
 
-  public static class Config {
+  @Override
+  public List<String> shortcutFieldOrder() {
+    return List.of("sessionAttributes");
   }
 
   /**
@@ -25,6 +31,7 @@ public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionV
   public GatewayFilter apply(Config config) {
     return (exchange, chain) -> {
       return exchange.getSession().flatMap(session -> {
+        System.out.println("config.getSessionAttributes() = " + config.getSessionAttributes());
         Object uuid = session.getAttributes().get("uuid");
         if (uuid != null) {
           return chain.filter(exchange.mutate().request(builder -> builder.header("uuid", uuid.toString())).build());
@@ -34,4 +41,11 @@ public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionV
       });
     };
   }
+
+  @Setter
+  @Getter
+  public static class Config {
+    private List<String> sessionAttributes;
+  }
+
 }
