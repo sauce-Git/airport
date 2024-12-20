@@ -1,37 +1,55 @@
 package com.travel.airport.filters;
 
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.stereotype.Component;
 import com.travel.airport.error.ErrorHandler;
 
 @Component
-public class SessionValidateFilter extends AbstractGatewayFilterFactory<SessionValidateFilter.Config> {
+public class SessionValidateFilter extends
+    AbstractGatewayFilterFactory<SessionValidateFilter.Config> {
 
   public SessionValidateFilter() {
-    super(SessionValidateFilter.Config.class);
+    super(Config.class);
   }
 
-  public static class Config {
+  @Override
+  public List<String> shortcutFieldOrder() {
+    return List.of("sessionAttributes");
   }
 
   /**
-   * GatewayFilter
-   * Validate the session.
-   * If the session is valid, add the uuid to the request header.
-   * If the session is invalid, return 401 Unauthorized.
+   * GatewayFilter Validate the session. If the session is valid, add the uuid to the request
+   * header. If the session is invalid, return 401 Unauthorized.
    */
   @Override
   public GatewayFilter apply(Config config) {
-    return (exchange, chain) -> {
-      return exchange.getSession().flatMap(session -> {
-        Object uuid = session.getAttributes().get("uuid");
-        if (uuid != null) {
-          return chain.filter(exchange.mutate().request(builder -> builder.header("uuid", uuid.toString())).build());
-        } else {
-          return ErrorHandler.unauthorized(exchange);
+    return (exchange, chain) -> exchange.getSession().flatMap(session -> {
+      config.getSessionAttributes().forEach(attribute -> {
+        Object value = session.getAttributes().get(attribute);
+        if (value != null) {
+          exchange.getRequest().mutate().header(attribute, value.toString());
         }
       });
-    };
+
+      if (config.getIsRequired() && config.getSessionAttributes().stream()
+          .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
+        return ErrorHandler.unauthorized(exchange);
+      }
+
+      return chain.filter(exchange);
+    });
+  }
+
+  @Setter
+  @Getter
+  public static class Config {
+
+    private List<String> sessionAttributes = List.of("uuid");
+    private Boolean isRequired = true;
   }
 }
