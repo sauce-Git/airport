@@ -18,13 +18,11 @@ spring:
             - StripPrefix=1
             - name: SessionIssueFilter
               args:
-                sessionAttributes:
-                  - uuid
+                sessionAttributes: uuid
                 isRequired: true
             - name: SessionValidateFilter
               args:
-                sessionAttributes:
-                  - uuid
+                sessionAttributes: uuid
                 isRequired: true
 
   # session configuration

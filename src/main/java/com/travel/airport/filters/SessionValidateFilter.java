@@ -17,13 +17,22 @@ public class SessionValidateFilter extends
     super(Config.class);
   }
 
+  @Setter
+  @Getter
+  public static class Config {
+
+    private List<String> sessionAttributes = List.of("uuid");
+    private Boolean isRequired = true;
+  }
+
   @Override
   public List<String> shortcutFieldOrder() {
     return List.of("sessionAttributes");
   }
 
   /**
-   * GatewayFilter Validate the session. If the session is valid, add the uuid to the request
+   * GatewayFilter Validate the session. If the session is valid, add the uuid to
+   * the request
    * header. If the session is invalid, return 401 Unauthorized.
    */
   @Override
@@ -45,11 +54,4 @@ public class SessionValidateFilter extends
     });
   }
 
-  @Setter
-  @Getter
-  public static class Config {
-
-    private List<String> sessionAttributes = List.of("uuid");
-    private Boolean isRequired = true;
-  }
 }

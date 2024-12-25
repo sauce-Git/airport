@@ -27,7 +27,6 @@ public class SessionIssueFilter extends AbstractGatewayFilterFactory<SessionIssu
   @Getter
   @Setter
   public static class Config {
-
     private List<String> sessionAttribute = List.of("uuid");
     private Boolean isRequired = true;
   }
@@ -52,7 +51,7 @@ public class SessionIssueFilter extends AbstractGatewayFilterFactory<SessionIssu
         if (config.getIsRequired()
             && (statusCode == HttpStatus.OK || statusCode == HttpStatus.CREATED)
             && config.getSessionAttribute().stream()
-            .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
+                .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
           config.getSessionAttribute()
               .forEach(attribute -> session.getAttributes().remove(attribute));
           response.setStatusCode(HttpStatus.UNAUTHORIZED);
