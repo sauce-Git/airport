@@ -20,14 +20,13 @@ public class SessionValidateFilter extends
   @Setter
   @Getter
   public static class Config {
-
-    private List<String> sessionAttributes = List.of("uuid");
-    private Boolean isRequired = true;
+    private List<String> attributes = List.of();
+    private List<String> requiredAttributes = List.of();
   }
 
   @Override
   public List<String> shortcutFieldOrder() {
-    return List.of("sessionAttributes");
+    return List.of("attributes", "requiredAttributes");
   }
 
   /**
@@ -38,17 +37,24 @@ public class SessionValidateFilter extends
   @Override
   public GatewayFilter apply(Config config) {
     return (exchange, chain) -> exchange.getSession().flatMap(session -> {
-      config.getSessionAttributes().forEach(attribute -> {
+      if (config.getRequiredAttributes().stream()
+          .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
+        return ErrorHandler.unauthorized(exchange);
+      }
+
+      config.getRequiredAttributes().forEach(attribute -> {
         Object value = session.getAttributes().get(attribute);
         if (value != null) {
           exchange.getRequest().mutate().header(attribute, value.toString());
         }
       });
 
-      if (config.getIsRequired() && config.getSessionAttributes().stream()
-          .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
-        return ErrorHandler.unauthorized(exchange);
-      }
+      config.getAttributes().forEach(attribute -> {
+        Object value = session.getAttributes().get(attribute);
+        if (value != null) {
+          exchange.getRequest().mutate().header(attribute, value.toString());
+        }
+      });
 
       return chain.filter(exchange);
     });

@@ -19,16 +19,16 @@ public class SessionIssueFilter extends AbstractGatewayFilterFactory<SessionIssu
     super(SessionIssueFilter.Config.class);
   }
 
-  @Override
-  public List<String> shortcutFieldOrder() {
-    return List.of("sessionAttributes");
-  }
-
   @Getter
   @Setter
   public static class Config {
-    private List<String> sessionAttribute = List.of("uuid");
-    private Boolean isRequired = true;
+    private List<String> attributes = List.of();
+    private List<String> requiredAttributes = List.of();
+  }
+
+  @Override
+  public List<String> shortcutFieldOrder() {
+    return List.of("attributes", "requiredAttributes");
   }
 
   /**
@@ -40,22 +40,33 @@ public class SessionIssueFilter extends AbstractGatewayFilterFactory<SessionIssu
       return chain.filter(exchange).then(Mono.fromRunnable(() -> {
         ServerHttpResponse response = exchange.getResponse();
         HttpStatusCode statusCode = response.getStatusCode();
-        config.getSessionAttribute().forEach(attribute -> {
+
+        // Required attributes must be present in the response
+        config.getRequiredAttributes().forEach(attribute -> {
           String value = response.getHeaders().getFirst(attribute);
-          if (value != null) {
+          if (value == null) {
+            // If attribute is required and the response is successful, return Unauthorized
+            if (statusCode == HttpStatus.OK || statusCode == HttpStatus.CREATED) {
+              response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            }
+          } else {
+            // Save the attribute to the session
             session.getAttributes().put(attribute, value);
             response.getHeaders().remove(attribute);
           }
         });
 
-        if (config.getIsRequired()
-            && (statusCode == HttpStatus.OK || statusCode == HttpStatus.CREATED)
-            && config.getSessionAttribute().stream()
-                .anyMatch(attribute -> session.getAttributes().get(attribute) == null)) {
-          config.getSessionAttribute()
-              .forEach(attribute -> session.getAttributes().remove(attribute));
-          response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        }
+        // Save the attributes to the session
+        config.getAttributes().forEach(attribute -> {
+          String value = response.getHeaders().getFirst(attribute);
+          if (value == null) {
+            session.getAttributes().remove(attribute);
+          } else {
+            // Save the attribute to the session
+            session.getAttributes().put(attribute, value);
+            response.getHeaders().remove(attribute);
+          }
+        });
       }));
     });
   }
